@@ -1,5 +1,7 @@
 import React, {useEffect} from "react";
-import { RGBA } from "./PBN";
+import { Container, Row } from "react-bootstrap";
+// import { RGBA } from "./PBN";
+import { Picture } from "./Picture";
 
 const planeVertShaderCode = `
 attribute vec2 coordinates;
@@ -115,7 +117,8 @@ const initGLCanvas = (id : string) => {
         console.error("GL Failed to created a texture.");
         return;
     }
-    setTexture([[{r:0, g:0, b:255, a: 255}, {r:0, g:255, b:255, a: 255}], [{r:255, g:255, b:0, a: 255}, {r:0, g:255, b:0, a: 255}]]);
+    let pic = new Picture(1, 1, new Uint8Array([255,255,255,255]));
+    setTexture(pic);
 
     // DRAW THE DAMN THING
     redrawCanvas();
@@ -123,25 +126,11 @@ const initGLCanvas = (id : string) => {
     
 }
 
-export const setTexture = (mat : Array<Array<RGBA>>) => {
+export const setTexture = (picture : Picture) => {
     if (!texture) {
         console.error("Cannot set texture until it has been instantiated in GL.");
         return;
     }
-    const height = mat.length;
-    const width = mat[0].length;
-    let pixels = new Uint8Array(width * height * 4);
-    for (let y=0; y < height; ++y) {
-        for (let x=0; x < width; ++x) {
-            let index = (y * width + x) * 4;
-            let color = mat[height-y-1][x];
-            pixels[index] = color.r;
-            pixels[index+1] = color.g;
-            pixels[index+2] = color.b;
-            pixels[index+3] = color.a;
-        }
-    }
-    console.log(pixels);
 
     const canvas = document.getElementById(canvasId) as HTMLCanvasElement | null;
     if (!canvas){
@@ -160,12 +149,12 @@ export const setTexture = (mat : Array<Array<RGBA>>) => {
     const srcFormat = gl.RGBA;
     const srcType = gl.UNSIGNED_BYTE;
     gl.bindTexture(gl.TEXTURE_2D, texture);
-    gl.texImage2D(gl.TEXTURE_2D, level, format, width, height, border, srcFormat, srcType, pixels);
+    gl.texImage2D(gl.TEXTURE_2D, level, format, picture.width, picture.height, border, srcFormat, srcType, picture.data);
 
     // gl.NEAREST is also allowed, instead of gl.LINEAR, as neither mipmap.
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
     // gl.NEAREST is also allowed, instead of gl.LINEAR, as neither mipmap.
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
     // Prevents s-coordinate wrapping (repeating).
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
     // Prevents t-coordinate wrapping (repeating).
@@ -230,5 +219,11 @@ export const PBNRenderer : React.FC<PBNRendererProps> = (props) => {
         initGLCanvas(canvasId);
     }, []);
 
-    return <canvas id={canvasId} width="400" height="400" style = {{border: '1px solid black'}}/>
+    return (
+        <Container>
+            <Row className="justify-content-center">                
+                <canvas id={canvasId} className="p-0 rounded PBNRenderer"/>
+            </Row>
+        </Container>
+    );
 }

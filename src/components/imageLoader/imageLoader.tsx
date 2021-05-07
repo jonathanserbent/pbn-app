@@ -1,9 +1,10 @@
 import React from "react";
 import Jimp from "jimp";
-import {RGBA} from "../PBN/PBN";
+import { Col, Container, Row } from "react-bootstrap";
+// import {RGBA} from "../PBN/PBN";
 
 interface ImageLoaderProps {
-    imageCallback : (mat : RGBA[][]) => void;
+    imageCallback : (jimp : Jimp) => void;
 }
 
 export const ImageLoader : React.FC<ImageLoaderProps> = (props) => {
@@ -15,7 +16,7 @@ export const ImageLoader : React.FC<ImageLoaderProps> = (props) => {
 
     const changeFunc = (event : React.ChangeEvent<HTMLInputElement>) => {
         event.persist();
-        if (!event.currentTarget.files)
+        if (!event.currentTarget.files || event.currentTarget.files.length === 0)
             return;
         const file = event.currentTarget.files[0];
         const fr = new FileReader();
@@ -24,31 +25,31 @@ export const ImageLoader : React.FC<ImageLoaderProps> = (props) => {
             // console.log(fr.result);
                 const imgBuffer = fr.result as Buffer;
                 Jimp.read(imgBuffer, (err, value) => {
-                    if (err)
-                        console.error("Jimp Failed to Load Image");
-                    let mat : RGBA[][] = new Array<Array<RGBA>>();
-                    for (let y = 0; y < value.getHeight(); y++) {
-                        let row : RGBA[] = new Array<RGBA>();
-                        for (let x = 0; x < value.getWidth(); x++) {
-                            row.push(Jimp.intToRGBA(value.getPixelColor(x, y)));
-                        }
-                        mat.push(row);
+                    if (err){
+                        console.error("Jimp Failed to Load Image with Message: " + err.message);
+                        return;
                     }
-                    props.imageCallback(mat);
+                    
+                    props.imageCallback(value);
                 })
             
 
         };
         fr.onerror = () => {
-            console.error("Oh no I made a fucky wucky");
+            console.error("File Reader encountered an eorror");
         };
 
         // console.log(file);
     }
 
     return (
-        <div>
-            <input type="file" id="input" onChange={changeFunc}/>
-        </div>
+        <Container className="py-3">
+            <Row className = "justify-content-center">
+                <Col>
+                    <input type="file" id="input" onChange={changeFunc}/>
+                </Col>
+            </Row>
+            
+        </Container>
     )
 }
