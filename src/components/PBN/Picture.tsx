@@ -11,7 +11,7 @@ export class Picture {
         for (let y=0; y < result.height; ++y){
             for (let x=0; x < result.width; ++x) {
                 let color = Jimp.intToRGBA(jimp.getPixelColor(x, y));
-                result.setPixel(x, result.height - y - 1, color);
+                result.setPixel(x, y, color);
             }
         }
         return result;
@@ -89,6 +89,14 @@ export class Picture {
             }
         }
         return result;
+    }
+
+    fill(color : RGBA) {
+        for (let x=0; x<this.width; ++x) {
+            for (let y=0; y < this.height; ++y) {
+                this.setPixel(x,y, color);
+            }
+        }
     }
 
 }

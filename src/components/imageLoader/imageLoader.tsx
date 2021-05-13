@@ -8,12 +8,6 @@ interface ImageLoaderProps {
 }
 
 export const ImageLoader : React.FC<ImageLoaderProps> = (props) => {
-    // const inputFile = useRef(null) 
-    // const onButtonClick = () => {
-    //     // `current` points to the mounted file input element
-    //    inputFile.current.click();
-    //   };
-
     const changeFunc = (event : React.ChangeEvent<HTMLInputElement>) => {
         event.persist();
         if (!event.currentTarget.files || event.currentTarget.files.length === 0)

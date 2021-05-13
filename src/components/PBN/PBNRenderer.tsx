@@ -2,14 +2,22 @@ import React, {useEffect} from "react";
 import { Container, Row } from "react-bootstrap";
 // import { RGBA } from "./PBN";
 import { Picture } from "./Picture";
+import { vec3, mat4 } from "gl-matrix";
 
 const planeVertShaderCode = `
+uniform mat4 proj;
+uniform mat4 view;
+uniform mat4 aspectRatio;
 attribute vec2 coordinates;
 
 varying highp vec2 uv;
 void main() {
-    gl_Position = vec4(coordinates.x, coordinates.y , 0, 1.0);
+    
+    highp vec4 pos = vec4(coordinates.x, coordinates.y , -1.0, 1.0);
+    gl_Position = proj * view * aspectRatio * pos;
+
     uv = (coordinates + 1.0)/2.0;
+    uv.y = 1.0 - uv.y;
 }
 `;
 
@@ -33,6 +41,13 @@ var vertexBuffer : WebGLBuffer | null = null;
 var indexBuffer : WebGLBuffer | null = null;
 var verts : number[] = [-1.0, 1.0,  1.0, 1.0,  -1.0, -1.0,  1.0, -1.0];
 var faces : number[] = [0, 1, 2, 1, 3, 2];
+var projectionMat : mat4 = mat4.create();
+var projectionLocation : WebGLUniformLocation | null = null;
+var viewMat : mat4 = mat4.create();
+var viewLocation : WebGLUniformLocation | null = null;
+var aspectRatio : mat4 = mat4.create();
+var aspectRatioLocation : WebGLUniformLocation | null = null;
+
 
 const initGLCanvas = (id : string) => {
     const canvas = document.getElementById(canvasId) as HTMLCanvasElement | null;
@@ -46,6 +61,14 @@ const initGLCanvas = (id : string) => {
         console.error("Failed to get webgl context");
         return;
     }
+
+    // Generate mats
+    mat4.ortho(projectionMat, -1, 1, -1, 1, 0.0001, 3);
+    let eye = vec3.fromValues(0, 0, 0);
+    let center = vec3.fromValues(0, 0, -1);
+    let up = vec3.fromValues(0, 1, 0);
+    mat4.lookAt(viewMat, eye, center, up);
+    mat4.identity(aspectRatio);
     
     // Create & Bind the VBO
     vertexBuffer = gl.createBuffer();
@@ -111,6 +134,9 @@ const initGLCanvas = (id : string) => {
 
     // Get texture location and pass the uniform in
     textureLocation = gl.getUniformLocation(shaderProgram, "tex");
+    projectionLocation = gl.getUniformLocation(shaderProgram, "proj");
+    viewLocation = gl.getUniformLocation(shaderProgram, "view");
+    aspectRatioLocation = gl.getUniformLocation(shaderProgram, "aspectRatio");
     
     texture = gl.createTexture();
     if (!texture){
@@ -143,6 +169,12 @@ export const setTexture = (picture : Picture) => {
         console.error("Failed to get webgl context");
         return;
     }
+
+    // Set aspect ratio
+    let largestSide = (picture.width > picture.height)? picture.width : picture.height;
+    aspectRatio[0] = picture.width/largestSide;
+    aspectRatio[5] = picture.height/largestSide;
+
     const level = 0;
     const format = gl.RGBA;
     const border = 0;
@@ -152,9 +184,9 @@ export const setTexture = (picture : Picture) => {
     gl.texImage2D(gl.TEXTURE_2D, level, format, picture.width, picture.height, border, srcFormat, srcType, picture.data);
 
     // gl.NEAREST is also allowed, instead of gl.LINEAR, as neither mipmap.
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
     // gl.NEAREST is also allowed, instead of gl.LINEAR, as neither mipmap.
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
     // Prevents s-coordinate wrapping (repeating).
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
     // Prevents t-coordinate wrapping (repeating).
@@ -178,6 +210,10 @@ export const redrawCanvas = () => {
     gl.bindTexture(gl.TEXTURE_2D, texture);
     gl.activeTexture(gl.TEXTURE0);
     gl.uniform1i(textureLocation, 0);
+
+    gl.uniformMatrix4fv(projectionLocation, false, projectionMat);
+    gl.uniformMatrix4fv(viewLocation, false, viewMat);
+    gl.uniformMatrix4fv(aspectRatioLocation, false, aspectRatio);
 
     gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
@@ -221,7 +257,8 @@ export const PBNRenderer : React.FC<PBNRendererProps> = (props) => {
 
     return (
         <Container>
-            <Row className="justify-content-center">                
+            <Row className="justify-content-center">
+                <p><i>Note: PBN outlines will look better once downloaded. The image below is just a preview.</i></p>          
                 <canvas id={canvasId} className="p-0 rounded PBNRenderer"/>
             </Row>
         </Container>
