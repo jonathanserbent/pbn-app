@@ -1,5 +1,5 @@
 # PBN App
-The following app was made as a final project for CS354 - Computer Graphics. The goal of the project was to create a web-app that allowed users to upload images and create Paint by Numbers outlines from them. A deployed instance of the project can be seen at https://pbn-app.heroku.com (**note**: if the website is taking a bi to initially show up, DONT WORRY! This is normal, and I believe it just has to do with heroku putting the app to sleep when it is not getting a lot of traffic).  
+The following app was made as a final project for CS354 - Computer Graphics. The goal of the project was to create a web-app that allowed users to upload images and create Paint by Numbers outlines from them. A deployed instance of the project can be seen at https://pbn-app.herokuapp.com/ (**note**: if the website is taking a bi to initially show up, DONT WORRY! This is normal, and I believe it just has to do with heroku putting the app to sleep when it is not getting a lot of traffic).  
 A full project report can be seen below, in the [Project Report](#project-report) section.
 
 ## Build Information
