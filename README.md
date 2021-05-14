@@ -1,5 +1,5 @@
 # PBN App
-The following app was made as a final project for CS354 - Computer Graphics. The goal of the project was to create a web-app that allowed users to upload images and create Paint by Numbers outlines from them. A deployed instance of the project can be seen at https://pbn-app.herokuapp.com/ (**note**: if the website is taking a bi to initially show up, DONT WORRY! This is normal, and I believe it just has to do with heroku putting the app to sleep when it is not getting a lot of traffic).  
+The following app was made as a final project for CS354 - Computer Graphics. The goal of the project was to create a web-app that allowed users to upload images and create Paint by Numbers outlines from them. A deployed instance of the project can be seen at https://pbn-app.herokuapp.com/ (**note**: if the website is taking a bit to initially show up, DONT WORRY! This is normal, and I believe it just has to do with heroku putting the app to sleep when it is not getting a lot of traffic).  
 A full project report can be seen below, in the [Project Report](#project-report) section.
 
 ## Build Information
@@ -56,29 +56,29 @@ For this project I decided I wanted to use `React` to build out the web-app, sin
 ## Project Breakdown
 This section of the report aims to breakdown the various things occurring throughout the project, and highlight important Classes and functions. This section will start with the user uploading an image and walk through the project step-by-step until we reach the downloaded image.
 1. ### Rendering Components
-   **Functions:** `App.tsx:App`, `PBN.tsx:PBN.Render`
+   **Functions:** `App.tsx:App`, `PBN.tsx:PBN.Render`  
    This step is really just an explaination for if you have never seen React Before. The `App` function returns the body of our web-app, which includes a title and our `PBN` component. By placing it in the body of our App, we construct a `PBN` object, and run it's `Render` function, which describes what to show for that component, and also constructs and shows any other sub-components, including the image upload button, color palette slider, and WebGL canvas.
 2. ### Parsing image into a Picture Class
-   **Functions:** `imageLoader.tsx:ImageLoader.changeFunc`, `PBN.tsx:PBN.imageUploadCallbackFactory`, `Picture.tsx:Picture.fromJimp`
+   **Functions:** `imageLoader.tsx:ImageLoader.changeFunc`, `PBN.tsx:PBN.imageUploadCallbackFactory`, `Picture.tsx:Picture.fromJimp`  
    This step begins when someone finishes clicking through the file selection window. Once the file is read, it is passed to `Jimp`, which creates a `Jimp` object that can read and write the pixles. This `Jimp` object is passed to the image callback function, whose behavior can be seen in the `imageUploadCallbackFactory`. This Creates a new `Picture` object by reading the width, heigh, and pixel data of the `Jimp` object, and stores it in the `baseImage` member of the PBN Class. This will allow the base image to be accessed from other functions in the PBN class. Once the base image is loaded, it will also be displayed in the WebGL canvas.
 3. ### Generating Color Palette
-   **Functions:** `PBN.tsx:PBN.kickoffGeneration`, `PBN.tsx:PBN.kmeansCallbackFactory`
+   **Functions:** `PBN.tsx:PBN.kickoffGeneration`, `PBN.tsx:PBN.kmeansCallbackFactory`  
    This step kicks-off the entire process of generating the PBN image. Before the kickoff function is called, the `palleteSize` (yes, it's improperly spelled because I cannot spell, but I will likely fix it sometime later when I fix up this project.) is set using using some admittedly janky functional programming and callbacks from the `PalleteSize` component (the slider). When the `Generate PBN` button is pressed, the `kickoffGeneration` function will pass the base image color data, the palette size, and the kMeans callback function the the `kmeans.clusterize` function. This will start the kMean clustering algortihm on our color data, and when it is complete, call the function returned by the `kmeansCallbackFactory`. In this callback function, we will read off our centroids from the result, and store them in our color palette. This will then also kick-off the generation of the colored-in image.
 4. ### Generating Colored Image
-   **Functions:** `PBN.tsx:PBN.generateColoredImage`
+   **Functions:** `PBN.tsx:PBN.generateColoredImage`  
    This is probably the most basic step in the process, the function will first set the `coloredImage` member equal to the base image. Then for each pixel in the image, it will get it's distance to each color in the color palette. It will then set the color of that pixel equal to the color it is closest to. Finally, it will call the function to create the actual PBN Image.
 5. ### Generating PBN Image
-   **Functions:** `PBN.tsx:PBN.generatePBNImage`, `PBN.tsx:PBN.findOutline`
+   **Functions:** `PBN.tsx:PBN.generatePBNImage`, `PBN.tsx:PBN.findOutline`  
    For this step, we will visit each pixel, and if it has not yet been visited we will find it's region and mark each pixel in it's region as visited. While getting a region, we will store all the pixels inside the region, as well as the outline of the region. The first step is to create an empty 2d array of boolean values, all set to false, to represent which pixels we have visited. Then, for reach pixel in the image, we will call `findOutline` to get it's region.  
    In the `findOutline` function, if the pixel has been visited before, it returns null. If the pixel has not been visited, it will place that point in a queue, and then start working through the queue. For each item it pops from the queue, it sets that pixel to visited, and adds it to the points in the result. Then, for each pixel left, right, above, and below it, if that pixel is equal to the color of the pixel we started at, they are in the same region and therefore get added to the queue. If any of the neighboring pixels are of a different color, then we know the pixel we are at lies on an edge, so we also add it to the list of points that make up the outline of the region.  
    When the queue has been fully processed, the region is returned to the `generatePBNImage` function, and the process is repeated for each pixel. When it is complete, a new Picture object is created with the width and height of the colored image. This picture is then filled white, then, for each point in the outline of every region, that point is set to black, creating our PBN outline.
 6. ### Downloading Images
-   **Functions:** `PBN.tsx:PBN.generateDownloadLinks`
+   **Functions:** `PBN.tsx:PBN.generateDownloadLinks`  
    This step occurs when the download button is pressed, and each download button is only available to be pressed when the associated picture exists. Once clicked, the `generateDownloadLinks` function will determine which image you are downloading, and then create a new buffer with the image encoded as a png. the `encode` function comes from our `image-encode` library. The buffer is then used to create a blob, and a object url is generated using the blob. A new anchor element (`<a></a>`) is temporarily created with the url to the download, and is added to the body. A mouse click is simulated to click on the link, causing the file to be downloaded, and then the anchor element is removed.
 
 The following segments of code may also be of interest:
 * ### WebGL Code
-   **Functions:** `PBNRenderer.tsx:PBN.initCanvas`, `PBNRenderer.tsx:PBN.setTexture`, `PBNRenderer.tsx:PBN.RedrawCanvas`
+   **Functions:** `PBNRenderer.tsx:PBN.initCanvas`, `PBNRenderer.tsx:PBN.setTexture`, `PBNRenderer.tsx:PBN.RedrawCanvas`  
    All these function help to setup and render our images in the WebGL Canvas context. Most of these steps mirror how they would work in OpenGL, but some aspects are slightly different. `initGLCanvas` does exactly that, it initializes matrices, creates and binds buffers, sets up, compiles, and links shader programs, and draws the canvas. However, rather than constantly redrawing the canvas in a loop, it is simply left as it's own function, to be called whenever the image we are previewing changes. When we want to preview changes, the `setTexture` function is called, which creates a texture from the Picture object we pass it, and sets the aspect ratio transformation matrix accordingly.  
    The shaders for this project are both quite simple. The vertex shader for our image plane simply takes in the points in the plane, translates them based on the aspect ratio, then translates using the view and projection matrices. The fragment shader simply takes the UV calculated in the vertex shader, and plugs it into the texture to get the fragment color.
 
