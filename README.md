@@ -44,7 +44,11 @@ See the section about [deployment](https://facebook.github.io/create-react-app/d
 
 # Project Report
 ## Contents
-*  [Tools Used](tools-used)
+*  [Tools Used](#tools-used)
+*  [Project Breakdown](#project-breakdown)
+*  [Shortcomings](#shortcomings)
+*  [Takeaways](#takeaways)
+*  [Screenshots](#screenshots)
 
 ## Tools Used
 For this project I decided I wanted to use `React` to build out the web-app, since I have used `React` for other school projects and personal projects, and am comfortable using it. Additionally, for some basic responsive frontend styling, I decided to also use `Bootstrap`, since it makes creating a gool-looking front-end bearable. The project utilized `WebGL` to display previews of the image, and the library `gl-matrix` was used to create vectors and matrices for `WebGL`. `Jimp` was used to handle parsing incoming images and accessing their pixel values, `node-kmeans` was used to run the k-means algorithm for picking colors, and `image-encode` was used to encode the resulting image as a PNG for downloading. Finally, `heroku` was used to deploy the project for free.
@@ -77,3 +81,22 @@ The following segments of code may also be of interest:
    **Functions:** `PBNRenderer.tsx:PBN.initCanvas`, `PBNRenderer.tsx:PBN.setTexture`, `PBNRenderer.tsx:PBN.RedrawCanvas`
    All these function help to setup and render our images in the WebGL Canvas context. Most of these steps mirror how they would work in OpenGL, but some aspects are slightly different. `initGLCanvas` does exactly that, it initializes matrices, creates and binds buffers, sets up, compiles, and links shader programs, and draws the canvas. However, rather than constantly redrawing the canvas in a loop, it is simply left as it's own function, to be called whenever the image we are previewing changes. When we want to preview changes, the `setTexture` function is called, which creates a texture from the Picture object we pass it, and sets the aspect ratio transformation matrix accordingly.  
    The shaders for this project are both quite simple. The vertex shader for our image plane simply takes in the points in the plane, translates them based on the aspect ratio, then translates using the view and projection matrices. The fragment shader simply takes the UV calculated in the vertex shader, and plugs it into the texture to get the fragment color.
+
+## Shortcomings
+I encountered many more issues in this project than I had initially expected, however, I am still really impressed with the results. The largest thing that is missing from this project is the numbering system. The only reason this was not able to be implemented is because I wasn't able to figure out a good way to write the numbers into the image. Figuring out which regions should be what color is easy, and finding the location to place the number in the image isn't too har either, since we have all the points in the region that the number belongs to, but I couldn't figure out a good way to write the number onto the image.  
+The second big issue with the project right now is the quality of the preview. Though we are always working with the full resolution of the image, the WebGL window for some reason shows the preview of each image in lower quality. This can become an issue in larger images where the outlines are much thinner compared to the whole image, and therefore don't show up well in the preview. I tried looking into the issue, but had to leave it as is to make more progress on the rest of the project. Another workaround idea I had was to implement zoom and pan controls on the preview to allow users to see the sections more clearly, but again did not have time to implement it before the project deadline.
+
+## Takeaways
+This project has been absolutely eye opening to me, and I am now inspired to do more WebGL projects. Additionally, I feel like this project has been a nice introduction for me to the image-processing side of graphics. I also got to learn about the k-means algorithm, and though I did not re-implement it, knowing how it works will allow me to find use cases for it in the future.  
+One big regret I have with this project is in how I structed a lot of the code. A lot of react websites are written using functional components, but components can also be written as classes. Shortly into writing the PBN Component, I realized it would be better represented as a class than a functional component, and changing it allowed me to better manage values and data. I feel like I should have just done this with all the components, so that it would be easier to handle their data, and I wouldn't have to pass information through callbacks as much. In future projects I do with WebGL I will experiment more with using class components to try and find a good layout that suits me and my development process.
+
+## Screenshots
+*Test image is one that I found on google and am using for a home D&D Campaign. Its size is about 2.3K x 2.5k px.*
+### App Preview
+![app](screenshots/app.png)
+### Base Image
+![app](screenshots/base.jpg)
+### Colored Image (Downloaded)
+![app](screenshots/colored.png)
+### PBN Image (Downloaded)
+![app](screenshots/pbn.png)
